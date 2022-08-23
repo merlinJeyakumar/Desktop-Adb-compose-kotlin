@@ -16,6 +16,10 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import component.DropdownBox
+import component.DropdownBuilder
+import component.EditText
+import component.EditTextBuilder
 import support.utility.executeCommand
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -24,9 +28,6 @@ import java.io.InputStreamReader
 @Composable
 @Preview
 fun App() {
-    var text by remember { mutableStateOf("Hello, World!") }
-    var isError by rememberSaveable { mutableStateOf(false) }
-
 
     MaterialTheme {
         Column(
@@ -109,17 +110,13 @@ fun App() {
                 ) {
                     return@EditText it
                 }
-                Button(onClick = {
-                    /*val process = Runtime.getRuntime().exec("arp -a")
-                    val reader = BufferedReader(InputStreamReader(process.inputStream))
-                    while (reader.readLine() != null) {
-                        println("execut ${reader.readText()}")
-                    }
-                    process.waitFor()*/
-                    print(executeCommand("arp -a"))
-                }, content = {
-                    Text("Scan")
-                })
+                Button(
+                    modifier = Modifier.align(alignment = Alignment.CenterHorizontally),
+                    onClick = {
+                        print(executeCommand("arp -a"))
+                    }, content = {
+                        Text("Scan")
+                    })
             }
         }
     }

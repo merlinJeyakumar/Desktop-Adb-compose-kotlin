@@ -1,5 +1,7 @@
 @file:OptIn(ExperimentalUnitApi::class)
 
+package component
+
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
