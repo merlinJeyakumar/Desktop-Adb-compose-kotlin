@@ -18,7 +18,9 @@ repositories {
 }
 
 dependencies {
-    implementation("commons-io:commons-io:2.6")
+    implementation(compose.materialIconsExtended)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.0")
+    implementation("commons-io:commons-io:2.11.0")
     implementation(compose.desktop.currentOs)
     implementation(Dependencies.uiTooling)
     implementation(Dependencies.preview)
