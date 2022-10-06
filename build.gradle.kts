@@ -19,11 +19,12 @@ repositories {
 
 dependencies {
     implementation(compose.materialIconsExtended)
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
     implementation("commons-io:commons-io:2.11.0")
     implementation(compose.desktop.currentOs)
     implementation(Dependencies.uiTooling)
     implementation(Dependencies.preview)
+    implementation("com.google.code.gson:gson:2.9.1")
 }
 
 tasks.withType<KotlinCompile> {

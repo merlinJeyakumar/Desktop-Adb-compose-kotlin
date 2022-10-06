@@ -3,6 +3,7 @@ package support.utility
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.TimeUnit
 
 fun isMac(): Boolean {
     return getProperty("os.name")?.contains("mac", true) == true
@@ -20,6 +21,20 @@ fun executeCommand(command: String): String {
 fun getProperty(command: String): String? {
     return System.getProperty(command)
 }
+
+
+fun String.runCommand(
+    workingDir: File = File(System.getProperty("user.home")),
+    timeoutAmount: Long = 60,
+    timeoutUnit: TimeUnit = TimeUnit.SECONDS
+): String? = runCatching {
+    ProcessBuilder("\\s".toRegex().split(this))
+        .directory(workingDir)
+        .redirectOutput(ProcessBuilder.Redirect.PIPE)
+        .redirectError(ProcessBuilder.Redirect.PIPE)
+        .start().also { it.waitFor(timeoutAmount, timeoutUnit) }
+        .inputStream.bufferedReader().readText()
+}.onFailure { it.printStackTrace() }.getOrNull()
 
 private fun shell(): MutableList<String> {
     return if (isMac()) {
