@@ -3,9 +3,7 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
@@ -39,7 +37,7 @@ fun main() = application {
 @Preview
 @Composable
 fun ShowDeviceWindow(window: MyWindowState) {
-    var devicesList: List<NetworkDevices> by remember { mutableStateOf(listOf()) }
+    var devicesList: MutableList<NetworkDevices> by remember { mutableStateOf(mutableListOf()) }
     val windowState = WindowState(
         size = DpSize(500.dp, 500.dp),
     )
@@ -61,37 +59,41 @@ fun ShowDeviceWindow(window: MyWindowState) {
                     .padding(5.dp)
                     .border(BorderStroke(1.dp, Color(Color.Gray.value)))
             ) {
-                items(devicesList) { devices ->
+                items(items = devicesList,
+                    key = {
+                        it.hashCode()
+                    }) { device ->
                     Row(
                         Modifier.padding(start = 18.dp, end = 18.dp, top = 6.dp, bottom = 6.dp),
                     ) {
                         Text(
                             textAlign = TextAlign.Center,
                             modifier = Modifier.align(alignment = Alignment.CenterVertically).weight(1f),
-                            text = devices.mac ?: "",
+                            text = device.mac ?: "",
                             style = textViewStyle,
                         )
                         Text(
                             textAlign = TextAlign.Center,
                             modifier = Modifier.align(alignment = Alignment.CenterVertically).weight(1f),
-                            text = devices.ip ?: "",
+                            text = device.ip ?: "",
                             style = textViewStyle
                         )
-                        Button(content = {
-                            Text(
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.align(alignment = Alignment.CenterVertically),
-                                text = devices.name ?: "Add",
-                                style = textViewStyle
-                            )
-                        }, onClick = {
-                            val input = showInputDialog("Device Name")
-                            devices.name = input
-                            saveConfiguration(devicesList)
-                            devicesList = mutableListOf<NetworkDevices>().apply {
-                                addAll(devicesList)
-                            }
-                        })
+                        Button(
+                            modifier = Modifier.align(alignment = Alignment.CenterVertically).weight(0.4f).widthIn(0.dp, 150.dp),
+                            content = {
+                                Text(
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.align(alignment = Alignment.CenterVertically),
+                                    text = device.name ?: "Add",
+                                    style = textViewStyle
+                                )
+                            }, onClick = {
+                                val input = showInputDialog("Device Name",device.name)
+                                device.name = input
+                                saveConfiguration(devicesList)
+                                devicesList.clear()
+                                devicesList = initList()
+                            })
                     }
                     Divider()
                 }
