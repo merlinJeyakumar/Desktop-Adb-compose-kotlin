@@ -2,6 +2,7 @@
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,10 +11,13 @@ import androidx.compose.material.Button
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
+import androidx.compose.material.icons.materialIcon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.loadImageBitmap
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -79,20 +83,41 @@ fun ShowDeviceWindow(window: MyWindowState) {
                             style = textViewStyle
                         )
                         Button(
-                            modifier = Modifier.align(alignment = Alignment.CenterVertically).weight(0.4f).widthIn(0.dp, 150.dp),
+                            modifier = Modifier.align(alignment = Alignment.CenterVertically).weight(0.8f)
+                                .widthIn(0.dp, 150.dp),
                             content = {
-                                Text(
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.align(alignment = Alignment.CenterVertically),
-                                    text = device.name ?: "Add",
-                                    style = textViewStyle
-                                )
+                                Row {
+                                    Text(
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.align(alignment = Alignment.CenterVertically).weight(1f),
+                                        text = device.name ?: "Add",
+                                        style = textViewStyle
+                                    )
+                                    Image(
+                                        painter = painterResource("ic_edit.png"), "Merlin",
+                                        modifier = Modifier.size(20.dp).align(alignment = Alignment.CenterVertically)
+                                            .weight(1f),
+                                    )
+                                }
                             }, onClick = {
-                                val input = showInputDialog("Device Name",device.name)
+                                val input = showInputDialog("Device Name", device.name)
                                 device.name = input
                                 saveConfiguration(devicesList)
                                 devicesList.clear()
                                 devicesList = initList()
+                            })
+                        Button(
+                            modifier = Modifier.align(alignment = Alignment.CenterVertically).weight(0.8f)
+                                .widthIn(0.dp, 150.dp),
+                            content = {
+                                Text(
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.align(alignment = Alignment.CenterVertically).weight(1f),
+                                    text = "TCP/IP",
+                                    style = textViewStyle
+                                )
+                            }, onClick = {
+                                //todo:
                             })
                     }
                     Divider()

@@ -1,5 +1,4 @@
 import org.jetbrains.compose.ComposePlugin.Dependencies
-import org.jetbrains.compose.compose
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -23,6 +22,7 @@ dependencies {
     implementation("commons-io:commons-io:2.11.0")
     implementation(compose.desktop.currentOs)
     implementation(Dependencies.uiTooling)
+    implementation(Dependencies.ui)
     implementation(Dependencies.preview)
     implementation("com.google.code.gson:gson:2.9.1")
 }
@@ -33,10 +33,10 @@ tasks.withType<KotlinCompile> {
 
 compose.desktop {
     application {
-        mainClass = "MainKt"
+        mainClass = "SmartConnect"
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "untitled"
+            packageName = "SmartConnect"
             packageVersion = "1.0.0"
         }
     }
