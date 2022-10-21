@@ -48,7 +48,7 @@ fun ShowDeviceWindow(window: MyWindowState) {
     Window(
         state = windowState,
         onCloseRequest = window::close,
-        title = "Network Devices",
+        title = "SharkADB",
     ) {
         MenuBar {
             Menu("Action") {
@@ -72,7 +72,7 @@ fun ShowDeviceWindow(window: MyWindowState) {
                     Row(
                         Modifier.padding(start = 18.dp, end = 18.dp, top = 6.dp, bottom = 6.dp).mouseClickable {
                             if (buttons.isSecondaryPressed) {
-                                expanded = true
+                                showDialog.value = true to device
                             }
                         },
                     ) {
@@ -92,10 +92,12 @@ fun ShowDeviceWindow(window: MyWindowState) {
                             textAlign = TextAlign.Center,
                             modifier = Modifier.align(alignment = Alignment.CenterVertically).weight(1f).clickable {
                                 val input = showInputDialog("Device Name", device.name)
-                                device.name = input
-                                saveConfiguration(devicesList)
-                                devicesList.clear()
-                                devicesList = initList()
+                                if (!input.isNullOrEmpty()) {
+                                    device.name = input
+                                    saveConfiguration(devicesList)
+                                    devicesList.clear()
+                                    devicesList = initList()
+                                }
                             },
                             text = device.name ?: "?",
                             style = textViewStyle
