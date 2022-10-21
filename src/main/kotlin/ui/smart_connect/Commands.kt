@@ -42,3 +42,10 @@ fun COMMAND_ADB_TCPIP_RESTART(deviceName: String?): MutableList<String> {
         add("5555")
     }
 }
+fun COMMAND_SCRCPY_CONNECT(deviceName: String): MutableList<String> {
+    return mutableListOf<String>().apply {
+        add("scrcpy")
+        add("-s")
+        add(deviceName)
+    }
+}

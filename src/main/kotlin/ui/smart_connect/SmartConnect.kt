@@ -34,6 +34,7 @@ fun main() = application {
 
 val showLoader = mutableStateOf(false)
 val showDialog: MutableState<Pair<Boolean, NetworkDevices?>> = mutableStateOf(Pair(false, null))
+val selectedDevice:MutableState<NetworkDevices?> = mutableStateOf(null)
 
 @Preview
 @Composable
@@ -106,18 +107,39 @@ fun ShowDeviceWindow(window: MyWindowState) {
                                 .align(alignment = Alignment.CenterVertically)
                                 .weight(0.2f)
                                 .clickable(enabled = true, onClick = {
+                                    device.ip?.let {
+                                        if (scrcpyThread?.isAlive == true) {
+                                            scrcpyThread?.interrupt()
+                                            scrcpyThread = null
+                                        }
+                                        scrcpyThread = scrcpy(it) {
 
+                                        }
+                                    }
                                 })
                         )
                         Image(
-                            painter = painterResource("ic_more.png"),
-                            contentDescription = "Merlin",
+                            painter = painterResource(
+                                if (device.isAdb) {
+                                    "ic_more.png"
+                                } else {
+                                    "ic_refresh.png"
+                                }
+                            ),
+                            contentDescription = "Refresh/More",
                             colorFilter = if (device.isAdb) null else ColorFilter.tint(Color.Gray),
                             modifier = Modifier.size(20.dp)
                                 .align(alignment = Alignment.CenterVertically)
                                 .weight(0.2f)
                                 .clickable(enabled = true, onClick = {
-                                    showDialog.value = true to device
+                                    if (!device.isAdb) {
+                                        selectedDevice.value = device
+                                        if (!tryConnecting()) {
+                                            showDialog.value = true to device
+                                        }
+                                    }else{
+                                        showDialog.value = true to device
+                                    }
                                 })
                         )
                     }
@@ -153,6 +175,8 @@ fun ShowDeviceWindow(window: MyWindowState) {
     }
 }
 
+var scrcpyThread: Thread? = null
+
 fun initList(): MutableList<NetworkDevices> {
     val activeDeviceList = getSubnetDeviceList()
     val adbMacList = adbMacByIp(getAdbDevices()).map { it.second }
@@ -173,6 +197,7 @@ fun initList(): MutableList<NetworkDevices> {
 }
 
 val forceTcpIp = mutableStateOf(false)
+
 @Composable
 fun connectedDialog() {
     /*val forceTcpIp = remember { mutableStateOf(false) }*/
@@ -195,14 +220,14 @@ fun connectedDialog() {
                         showDialog.value.second?.ip?.let {
                             if (forceTcpIp.value) {
                                 val tcpIpConnection = tcpipAdb(deviceName = it)
-                                if (!tcpIpConnection.first){ //when tcpip fails
+                                if (!tcpIpConnection.first) { //when tcpip fails
                                     showLoader.value = false
-                                    showMessageDialog(null,tcpIpConnection.second)
+                                    showMessageDialog(null, tcpIpConnection.second)
                                 }
                             }
                             val adbConnection = connectAdb(deviceName = it)
                             showLoader.value = false
-                            showMessageDialog(null,adbConnection.second)
+                            showMessageDialog(null, adbConnection.second)
                         }
                     }
             )
@@ -222,15 +247,24 @@ fun connectedDialog() {
             Text(
                 text = "Disconnect",
                 Modifier.padding(start = 18.dp, end = 18.dp, top = 6.dp, bottom = 6.dp)
-                    .clickable {
+                    .clickable(showDialog.value.second?.isAdb?:false) {
                         showLoader.value = true
                         val connectionOutput = disconnectAdb(showDialog.value.second?.ip)
                         showLoader.value = false
-                        showMessageDialog(null,connectionOutput.second)
+                        showMessageDialog(null, connectionOutput.second)
                     }
             )
         }
         Divider()
     }
+}
+
+fun tryConnecting(): Boolean {
+    showLoader.value = true
+    val device = selectedDevice.value!!
+    val adbConnection = connectAdb(deviceName = device.ip!!)
+    showLoader.value = false
+    showMessageDialog(null, adbConnection.second)
+    return adbConnection.first
 }
 
