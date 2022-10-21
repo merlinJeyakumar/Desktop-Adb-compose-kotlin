@@ -44,7 +44,12 @@ fun tcpipAdb(deviceName: String?): Pair<Boolean, String> {
 
 fun connectAdb(deviceName:String): Pair<Boolean, String> {
     val executionOutput = COMMAND_ADB_WIFI_CONNECT(deviceName).runCommand()
-    return (executionOutput.success && !executionOutput.output.contains("disconnected",true)) to executionOutput.output
+    return (executionOutput.success && executionOutput.output.contains("connected",true)) to executionOutput.output
+}
+
+fun disconnectAdb(deviceName:String?): Pair<Boolean, String> {
+    val executionOutput = COMMAND_ADB_DISCONNECT(deviceName).runCommand()
+    return (executionOutput.success && executionOutput.output.contains("disconnected",true)) to executionOutput.output
 }
 
 fun String.extractOutputs(): NetworkDevices? {

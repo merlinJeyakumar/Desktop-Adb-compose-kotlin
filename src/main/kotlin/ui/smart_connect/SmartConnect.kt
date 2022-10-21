@@ -223,7 +223,10 @@ fun connectedDialog() {
                 text = "Disconnect",
                 Modifier.padding(start = 18.dp, end = 18.dp, top = 6.dp, bottom = 6.dp)
                     .clickable {
-                        //adb disconnect <device name>
+                        showLoader.value = true
+                        val connectionOutput = disconnectAdb(showDialog.value.second?.ip)
+                        showLoader.value = false
+                        showMessageDialog(null,connectionOutput.second)
                     }
             )
         }
