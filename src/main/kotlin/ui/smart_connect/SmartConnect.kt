@@ -4,6 +4,7 @@ import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,12 +12,11 @@ import androidx.compose.material.Button
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
-import androidx.compose.material.icons.materialIcon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.loadImageBitmap
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
@@ -53,11 +53,11 @@ fun ShowDeviceWindow(window: MyWindowState) {
         MenuBar {
             Menu("Action") {
                 Item("Refresh", onClick = {
-                    devicesList = getDeviceList()
+                    devicesList = getSubnetDeviceList()
                 })
             }
         }
-        Column() {
+        Column {
             LazyColumn(
                 modifier = Modifier
                     .padding(5.dp)
@@ -67,6 +67,8 @@ fun ShowDeviceWindow(window: MyWindowState) {
                     key = {
                         it.hashCode()
                     }) { device ->
+                    //var dname by mutableStateOf(null)
+
                     Row(
                         Modifier.padding(start = 18.dp, end = 18.dp, top = 6.dp, bottom = 6.dp),
                     ) {
@@ -82,43 +84,39 @@ fun ShowDeviceWindow(window: MyWindowState) {
                             text = device.ip ?: "",
                             style = textViewStyle
                         )
-                        Button(
-                            modifier = Modifier.align(alignment = Alignment.CenterVertically).weight(0.8f)
-                                .widthIn(0.dp, 150.dp),
-                            content = {
-                                Row {
-                                    Text(
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier.align(alignment = Alignment.CenterVertically).weight(1f),
-                                        text = device.name ?: "Add",
-                                        style = textViewStyle
-                                    )
-                                    Image(
-                                        painter = painterResource("ic_edit.png"), "Merlin",
-                                        modifier = Modifier.size(20.dp).align(alignment = Alignment.CenterVertically)
-                                            .weight(1f),
-                                    )
-                                }
-                            }, onClick = {
-                                val input = showInputDialog("Device Name", device.name)
-                                device.name = input
-                                saveConfiguration(devicesList)
-                                devicesList.clear()
-                                devicesList = initList()
-                            })
-                        Button(
-                            modifier = Modifier.align(alignment = Alignment.CenterVertically).weight(0.8f)
-                                .widthIn(0.dp, 150.dp),
-                            content = {
-                                Text(
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.align(alignment = Alignment.CenterVertically).weight(1f),
-                                    text = "TCP/IP",
-                                    style = textViewStyle
-                                )
-                            }, onClick = {
-                                //todo:
-                            })
+                        Text(
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.align(alignment = Alignment.CenterVertically).weight(1f).clickable {
+                                    val input = showInputDialog("Device Name", device.name)
+                                    device.name = input
+                                    saveConfiguration(devicesList)
+                                    devicesList.clear()
+                                    devicesList = initList()
+                                },
+                            text = device.name ?: "?",
+                            style = textViewStyle
+                        )
+                        Image(
+                            painter = painterResource("ic_scrcpy.png"), "Merlin",
+                            colorFilter = if (device.isAdb) null else ColorFilter.tint(Color.LightGray),
+                            modifier = Modifier.size(20.dp)
+                                .align(alignment = Alignment.CenterVertically)
+                                .weight(0.2f)
+                                .clickable(enabled = true, onClick = {
+
+                                })
+                        )
+                        Image(
+                            painter = painterResource("ic_more.png"),
+                            contentDescription = "Merlin",
+                            colorFilter = if (device.isAdb) null else ColorFilter.tint(Color.Gray),
+                            modifier = Modifier.size(20.dp)
+                                .align(alignment = Alignment.CenterVertically)
+                                .weight(0.2f)
+                                .clickable(enabled = true, onClick = {
+
+                                })
+                        )
                     }
                     Divider()
                 }
@@ -129,7 +127,15 @@ fun ShowDeviceWindow(window: MyWindowState) {
 }
 
 fun initList(): MutableList<NetworkDevices> {
-    val activeDeviceList = getDeviceList()
+    val activeDeviceList = getSubnetDeviceList()
+    val adbMacList = adbMacByIp(getAdbDevices()).map { it.second }
+
+    activeDeviceList.map { activeDevice ->
+        activeDevice.isAdb = adbMacList.any() {
+            it == activeDevice.mac
+        }
+    }
+
     for (loadedDevice in loadConfiguration() ?: listOf()) {
         val activeDevice = activeDeviceList.firstOrNull {
             it.mac == loadedDevice.mac

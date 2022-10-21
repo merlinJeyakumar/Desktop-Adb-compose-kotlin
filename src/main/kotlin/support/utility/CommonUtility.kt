@@ -1,6 +1,9 @@
 package support.utility
 
+import org.apache.commons.exec.CommandLine
+import org.apache.commons.exec.DefaultExecutor
 import org.apache.commons.io.IOUtils
+import ui.smart_connect.ExecutionOutput
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
@@ -21,11 +24,30 @@ fun executeCommand(command: String): String {
 fun getProperty(command: String): String? {
     return System.getProperty(command)
 }
-
+fun List<String>.runCommand(
+    workingDir: File = File(System.getProperty("user.home")),
+    timeoutAmount: Long = 10,
+    timeoutUnit: TimeUnit = TimeUnit.SECONDS
+): ExecutionOutput {
+    return try {
+        val processBuilder = ProcessBuilder(this)
+            .directory(workingDir)
+            .redirectErrorStream(true)
+            .redirectOutput(ProcessBuilder.Redirect.PIPE)
+            .redirectError(ProcessBuilder.Redirect.PIPE)
+            .start()
+        processBuilder.waitFor(timeoutAmount, timeoutUnit)
+        val output = processBuilder.inputStream.bufferedReader().readText().trimStart().trimEnd()
+        ExecutionOutput(processBuilder.exitValue() != 1, output)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        ExecutionOutput(false, e.localizedMessage)
+    }
+}
 
 fun String.runCommand(
     workingDir: File = File(System.getProperty("user.home")),
-    timeoutAmount: Long = 60,
+    timeoutAmount: Long = 2,
     timeoutUnit: TimeUnit = TimeUnit.SECONDS
 ): String? = runCatching {
     ProcessBuilder("\\s".toRegex().split(this))

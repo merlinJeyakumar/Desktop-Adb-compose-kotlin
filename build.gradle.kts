@@ -25,6 +25,7 @@ dependencies {
     implementation(Dependencies.ui)
     implementation(Dependencies.preview)
     implementation("com.google.code.gson:gson:2.9.1")
+    implementation("org.apache.commons:commons-exec:1.3")
 }
 
 tasks.withType<KotlinCompile> {
