@@ -21,10 +21,9 @@ fun getAdbDevices(): List<String> {
     if (opList.isNotEmpty()) {
         opList.removeAt(0)
     }
-    val filteredList = opList
+    return opList
         .filterNot { it == "\r" || it == "\n" || it.isEmpty() }
         .map { it.trimEnd().split("\t")[0] }
-    return filteredList
 }
 
 fun adbMacByIp(list: List<String>): MutableList<Pair<String, String>> {
