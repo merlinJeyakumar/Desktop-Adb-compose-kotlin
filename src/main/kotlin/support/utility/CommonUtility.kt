@@ -12,6 +12,7 @@ fun isMac(): Boolean {
     return getProperty("os.name")?.contains("mac", true) == true
 }
 
+@Deprecated("use runCommand insteadof")
 fun executeCommand(command: String): String {
     //"cmd", "/C", "dir"
     val inputStream = ProcessBuilder(shell().also { it.add(command) })

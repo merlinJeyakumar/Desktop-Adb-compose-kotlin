@@ -5,7 +5,6 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
 import ui.smart_connect.*
 import javax.swing.JOptionPane.showInputDialog
-import javax.swing.plaf.ProgressBarUI
+import javax.swing.JOptionPane.showMessageDialog
 
 fun main() = application {
     val applicationState = remember { MyApplicationState() }
@@ -34,6 +33,7 @@ fun main() = application {
 }
 
 val showLoader = mutableStateOf(false)
+val showDialog: MutableState<Pair<Boolean, NetworkDevices?>> = mutableStateOf(Pair(false, null))
 
 @Preview
 @Composable
@@ -41,7 +41,6 @@ fun ShowDeviceWindow(window: MyWindowState) {
     var devicesList: MutableList<NetworkDevices> by remember { mutableStateOf(mutableListOf()) }
     var expanded by remember { mutableStateOf(false) }
 
-    val showDialog = mutableStateOf(false)
     val windowState = WindowState(
         size = DpSize(500.dp, 500.dp),
     )
@@ -118,7 +117,7 @@ fun ShowDeviceWindow(window: MyWindowState) {
                                 .align(alignment = Alignment.CenterVertically)
                                 .weight(0.2f)
                                 .clickable(enabled = true, onClick = {
-                                    showDialog.value = true
+                                    showDialog.value = true to device
                                 })
                         )
                     }
@@ -130,9 +129,9 @@ fun ShowDeviceWindow(window: MyWindowState) {
             title = "Options",
             state = DialogState(size = DpSize(Dp.Unspecified, Dp.Unspecified)),
             resizable = false,
-            visible = showDialog.value,
+            visible = showDialog.value.first,
             onCloseRequest = {
-                showDialog.value = false
+                showDialog.value = false to null
             },
             content = {
                 connectedDialog()
@@ -173,9 +172,10 @@ fun initList(): MutableList<NetworkDevices> {
     return activeDeviceList
 }
 
+val forceTcpIp = mutableStateOf(false)
 @Composable
 fun connectedDialog() {
-    val forceTcpIp = remember { mutableStateOf(false) }
+    /*val forceTcpIp = remember { mutableStateOf(false) }*/
 
     Column(Modifier.padding(5.dp).size(200.dp, Dp.Unspecified)) {
         Row(modifier = Modifier.padding(5.dp)) {
@@ -192,8 +192,17 @@ fun connectedDialog() {
                     .align(alignment = Alignment.CenterVertically)
                     .clickable {
                         showLoader.value = true
-                        if (forceTcpIp.value) {
-                            //cmd
+                        showDialog.value.second?.ip?.let {
+                            if (forceTcpIp.value) {
+                                val tcpIpConnection = tcpipAdb(deviceName = it)
+                                if (!tcpIpConnection.first){ //when tcpip fails
+                                    showLoader.value = false
+                                    showMessageDialog(null,tcpIpConnection.second)
+                                }
+                            }
+                            val adbConnection = connectAdb(deviceName = it)
+                            showLoader.value = false
+                            showMessageDialog(null,adbConnection.second)
                         }
                     }
             )

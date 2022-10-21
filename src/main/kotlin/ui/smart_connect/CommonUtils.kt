@@ -37,6 +37,16 @@ fun adbMacByIp(list: List<String>): MutableList<Pair<String, String>> {
     return ipMacList
 }
 
+fun tcpipAdb(deviceName: String?): Pair<Boolean, String> {
+    val executionOutput = COMMAND_ADB_TCPIP_RESTART(deviceName).runCommand()
+    return (executionOutput.success && executionOutput.output.contains("restarting",true)) to executionOutput.output
+}
+
+fun connectAdb(deviceName:String): Pair<Boolean, String> {
+    val executionOutput = COMMAND_ADB_WIFI_CONNECT(deviceName).runCommand()
+    return (executionOutput.success && !executionOutput.output.contains("disconnected",true)) to executionOutput.output
+}
+
 fun String.extractOutputs(): NetworkDevices? {
     val split = this.replace("\\s{2,}".toRegex(), ":").split(":")
     return if (split.size == 3) {

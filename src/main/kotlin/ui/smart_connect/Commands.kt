@@ -12,3 +12,23 @@ fun COMMAND_ADB_MAC_BY_IP(deviceName:String): MutableList<String> {
         add("\"ip addr show wlan0  | grep 'link/ether '| cut -d' ' -f6\"")
     }
 }
+
+fun COMMAND_ADB_WIFI_CONNECT(deviceName: String):MutableList<String>{
+    return mutableListOf<String>().apply {
+        add("adb")
+        add("connect")
+        add(deviceName)
+    }
+}
+
+fun COMMAND_ADB_TCPIP_RESTART(deviceName: String?):MutableList<String>{
+    return mutableListOf<String>().apply {
+        add("adb")
+        deviceName?.let {
+            add("-s")
+            add(deviceName)
+        }
+        add("tcpip")
+        add("5555")
+    }
+}
