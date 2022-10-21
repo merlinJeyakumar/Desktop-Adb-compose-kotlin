@@ -53,7 +53,7 @@ fun ShowDeviceWindow(window: MyWindowState) {
         MenuBar {
             Menu("Action") {
                 Item("Refresh", onClick = {
-                    devicesList = getSubnetDeviceList()
+                    devicesList = initList()
                 })
             }
         }
