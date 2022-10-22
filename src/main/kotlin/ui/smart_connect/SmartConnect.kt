@@ -18,9 +18,17 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
+import kotlinx.coroutines.*
 import ui.smart_connect.*
+import java.io.IOException
+import java.net.InetAddress
+import java.net.NetworkInterface
+import java.time.Duration
+import java.time.Instant
+import java.util.*
 import javax.swing.JOptionPane.showInputDialog
 import javax.swing.JOptionPane.showMessageDialog
+
 
 fun main() = application {
     val applicationState = remember { MyApplicationState() }
@@ -34,7 +42,7 @@ fun main() = application {
 
 val showLoader = mutableStateOf(false)
 val showDialog: MutableState<Pair<Boolean, NetworkDevices?>> = mutableStateOf(Pair(false, null))
-val selectedDevice:MutableState<NetworkDevices?> = mutableStateOf(null)
+val selectedDevice: MutableState<NetworkDevices?> = mutableStateOf(null)
 
 @Preview
 @Composable
@@ -139,7 +147,7 @@ fun ShowDeviceWindow(window: MyWindowState) {
                                         if (!tryConnecting()) {
                                             showDialog.value = true to device
                                         }
-                                    }else{
+                                    } else {
                                         showDialog.value = true to device
                                     }
                                 })
@@ -173,6 +181,7 @@ fun ShowDeviceWindow(window: MyWindowState) {
                 )
             }
         )
+        //subnetScan()
         devicesList = initList()
     }
 }
@@ -249,7 +258,7 @@ fun connectedDialog() {
             Text(
                 text = "Disconnect",
                 Modifier.padding(start = 18.dp, end = 18.dp, top = 6.dp, bottom = 6.dp)
-                    .clickable(showDialog.value.second?.isAdb?:false) {
+                    .clickable(showDialog.value.second?.isAdb ?: false) {
                         showLoader.value = true
                         val connectionOutput = disconnectAdb(showDialog.value.second?.ip)
                         showLoader.value = false
@@ -270,3 +279,71 @@ fun tryConnecting(): Boolean {
     return adbConnection.first
 }
 
+fun subnetScan() {
+    val e: Enumeration<*> = NetworkInterface.getNetworkInterfaces()
+    while (e.hasMoreElements()) {
+        val n = e.nextElement() as NetworkInterface
+        val ee: Enumeration<*> = n.inetAddresses
+        while (ee.hasMoreElements()) {
+            val nextInetAddress = ee.nextElement() as InetAddress
+
+            for ((start,end) in 255f.getDividends(20)) {
+                //println("Start: ${start} end: ${end}")
+                giveAHug(nextInetAddress, start, end).start()
+            }
+            /*giveAHug(nextInetAddress, 0, 50).start()
+            giveAHug(nextInetAddress, 51, 100).start()
+            giveAHug(nextInetAddress, 101, 150).start()
+            giveAHug(nextInetAddress, 151, 200).start()
+            giveAHug(nextInetAddress, 201, 255).start()*/
+        }
+    }
+}
+
+
+val meowList = mutableListOf<String>()
+fun giveAHug(
+    nextInetAddress: InetAddress,
+    start: Int = 0,
+    upto: Int = 255
+): Job {
+    return CoroutineScope(Dispatchers.IO).async {
+        val ip = nextInetAddress.hostAddress
+        var macId = NetworkInterface.getByInetAddress(nextInetAddress).hardwareAddress
+        val sip = ip.substring(0, ip.indexOf('.', ip.indexOf('.', ip.indexOf('.') + 1) + 1) + 1)
+        try {
+            for (it in start..upto) {
+                val ipToTest = sip + it
+                val online = ping(ipToTest)
+                if (online?.toString() != "PT24H") {
+                    meowList.add(ipToTest)
+                    println("$ipToTest is online $online ${online?.toMillis()} macId: ${macId.toMac()}")
+                }
+            }
+        } catch (e1: IOException) {
+            println(sip)
+        }
+    }
+}
+
+
+fun ByteArray.toMac(): String {
+    val sb = StringBuilder()
+    for (i in 0 until this.size) {
+        sb.append(java.lang.String.format("%02X%s", this.get(i), if (i < this.size - 1) "-" else ""))
+    }
+    return sb.toString()
+}
+
+fun ping(host: String?): Duration? {
+    val startTime: Instant = Instant.now()
+    try {
+        val address = InetAddress.getByName(host)
+        if (address.isReachable(1000)) {
+            return Duration.between(startTime, Instant.now())
+        }
+    } catch (e: IOException) {
+        // Host not available, nothing to do here
+    }
+    return Duration.ofDays(1)
+}
