@@ -1,4 +1,4 @@
-package ui.smart_connect
+package ui.smart_connect.utility
 
 import kotlin.math.roundToInt
 

@@ -1,7 +1,8 @@
-package ui.smart_connect
+package ui.smart_connect.provider
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import ui.smart_connect.support.NetworkDevices
 import java.io.File
 
 

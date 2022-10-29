@@ -20,6 +20,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
 import kotlinx.coroutines.*
 import ui.smart_connect.*
+import ui.smart_connect.provider.loadConfiguration
+import ui.smart_connect.provider.saveConfiguration
+import ui.smart_connect.support.*
+import ui.smart_connect.utility.getDividends
+import ui.smart_connect.window.MyApplicationState
+import ui.smart_connect.window.MyWindowState
 import java.io.IOException
 import java.net.InetAddress
 import java.net.NetworkInterface
@@ -43,11 +49,13 @@ fun main() = application {
 val showLoader = mutableStateOf(false)
 val showDialog: MutableState<Pair<Boolean, NetworkDevices?>> = mutableStateOf(Pair(false, null))
 val selectedDevice: MutableState<NetworkDevices?> = mutableStateOf(null)
+var devicesList: MutableList<NetworkDevices> by mutableStateOf(mutableListOf())
+var useArp by mutableStateOf(true)
+val forceTcpIp = mutableStateOf(false)
 
 @Preview
 @Composable
 fun ShowDeviceWindow(window: MyWindowState) {
-    var devicesList: MutableList<NetworkDevices> by remember { mutableStateOf(mutableListOf()) }
     var expanded by remember { mutableStateOf(false) }
 
     val windowState = WindowState(
@@ -58,14 +66,15 @@ fun ShowDeviceWindow(window: MyWindowState) {
         onCloseRequest = window::close,
         title = "SharkADB",
     ) {
-        MenuBar {
-            Menu("Action") {
+        /*MenuBar {
+            Menu("Action", mnemonic = 'F') {
                 Item("Refresh", onClick = {
                     devicesList = initList()
                 })
             }
-        }
+        }*/
         Column {
+            discoveryControls()
             LazyColumn(
                 modifier = Modifier
                     .padding(5.dp)
@@ -75,8 +84,6 @@ fun ShowDeviceWindow(window: MyWindowState) {
                     key = {
                         it.hashCode()
                     }) { device ->
-                    //var dname by mutableStateOf(null)
-
                     Row(
                         Modifier.padding(start = 18.dp, end = 18.dp, top = 6.dp, bottom = 6.dp).mouseClickable {
                             if (buttons.isSecondaryPressed) {
@@ -185,6 +192,35 @@ fun ShowDeviceWindow(window: MyWindowState) {
         devicesList = initList()
     }
 }
+@Composable
+private fun discoveryControls() {
+    Row {
+        /*Checkbox*/
+        Row(Modifier.padding(start = 18.dp, end = 18.dp, top = 6.dp, bottom = 6.dp)) {
+            Checkbox(
+                modifier = Modifier.padding(start = 6.dp, top = 6.dp, bottom = 6.dp),
+                checked = useArp,
+                onCheckedChange = {
+                    useArp = it
+                },
+            )
+            Text(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                text = "Use ARP command to discover"
+            )
+        }
+        /*Refresh Button*/
+        Image(
+            painter = painterResource("ic_refresh.png"), "Refresh",
+            modifier = Modifier.size(20.dp)
+                .align(alignment = Alignment.CenterVertically)
+                .weight(0.2f)
+                .clickable(enabled = true, onClick = {
+                    devicesList = initList()
+                })
+        )
+    }
+}
 
 var scrcpyThread: Thread? = null
 
@@ -206,9 +242,6 @@ fun initList(): MutableList<NetworkDevices> {
     }
     return activeDeviceList
 }
-
-val forceTcpIp = mutableStateOf(false)
-
 @Composable
 fun connectedDialog() {
     /*val forceTcpIp = remember { mutableStateOf(false) }*/
@@ -287,7 +320,7 @@ fun subnetScan() {
         while (ee.hasMoreElements()) {
             val nextInetAddress = ee.nextElement() as InetAddress
 
-            for ((start,end) in 255f.getDividends(20)) {
+            for ((start, end) in 255f.getDividends(20)) {
                 //println("Start: ${start} end: ${end}")
                 giveAHug(nextInetAddress, start, end).start()
             }

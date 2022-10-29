@@ -1,4 +1,4 @@
-package ui.smart_connect
+package ui.smart_connect.shell
 
 
 const val COMMAND_ARP_A = "arp -a"

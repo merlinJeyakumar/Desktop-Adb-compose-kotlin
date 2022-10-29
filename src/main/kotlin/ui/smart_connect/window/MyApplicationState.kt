@@ -1,4 +1,4 @@
-package ui.smart_connect
+package ui.smart_connect.window
 
 import androidx.compose.runtime.mutableStateListOf
 

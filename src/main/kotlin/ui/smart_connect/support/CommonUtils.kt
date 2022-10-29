@@ -1,6 +1,7 @@
-package ui.smart_connect
+package ui.smart_connect.support
 
 import support.utility.runCommand
+import ui.smart_connect.shell.*
 import kotlin.concurrent.thread
 
 //adb device

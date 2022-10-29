@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
-import ui.smart_connect.MyWindowState
+import ui.smart_connect.window.MyWindowState
 
 @Composable
 fun ApplicationScope.BasicWindow(
