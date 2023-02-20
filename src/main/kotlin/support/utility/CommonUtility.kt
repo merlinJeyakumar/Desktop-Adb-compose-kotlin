@@ -10,6 +10,10 @@ fun isMac(): Boolean {
     return getProperty("os.name")?.contains("mac", true) == true
 }
 
+fun is64Bit(): Boolean {
+    return getProperty("os.arch")?.contains("64", true) == true
+}
+
 @Deprecated("use runCommand insteadof")
 fun executeCommand(command: String): String {
     //"cmd", "/C", "dir"

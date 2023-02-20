@@ -26,6 +26,7 @@ dependencies {
     implementation(Dependencies.preview)
     implementation("com.google.code.gson:gson:2.9.1")
     implementation("org.apache.commons:commons-exec:1.3")
+    implementation(files("libs/org.nmap4j-1.1.0.jar"))
 }
 
 tasks.withType<KotlinCompile> {

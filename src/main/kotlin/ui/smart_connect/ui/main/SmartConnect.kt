@@ -19,18 +19,24 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
 import kotlinx.coroutines.*
+import org.nmap4j.Nmap4j
+import support.utility.is64Bit
+import support.utility.isMac
 import ui.smart_connect.*
 import ui.smart_connect.provider.loadConfiguration
 import ui.smart_connect.provider.saveConfiguration
+import ui.smart_connect.subnet.ping
+import ui.smart_connect.subnet.toMac
 import ui.smart_connect.support.*
+import ui.smart_connect.ui.dialog.loader
+import ui.smart_connect.ui.dialog.showLoader
+import ui.smart_connect.ui.main.dialog.deviceDialog
 import ui.smart_connect.utility.getDividends
 import ui.smart_connect.window.MyApplicationState
 import ui.smart_connect.window.MyWindowState
 import java.io.IOException
 import java.net.InetAddress
 import java.net.NetworkInterface
-import java.time.Duration
-import java.time.Instant
 import java.util.*
 import javax.swing.JOptionPane.showInputDialog
 import javax.swing.JOptionPane.showMessageDialog
@@ -46,7 +52,6 @@ fun main() = application {
     }
 }
 
-val showLoader = mutableStateOf(false)
 val showDialog: MutableState<Pair<Boolean, NetworkDevices?>> = mutableStateOf(Pair(false, null))
 val selectedDevice: MutableState<NetworkDevices?> = mutableStateOf(null)
 var devicesList: MutableList<NetworkDevices> by mutableStateOf(mutableListOf())
@@ -164,34 +169,29 @@ fun ShowDeviceWindow(window: MyWindowState) {
                 }
             }
         }
-        Dialog(
-            title = "Options",
-            state = DialogState(size = DpSize(Dp.Unspecified, Dp.Unspecified)),
-            resizable = false,
-            visible = showDialog.value.first,
-            onCloseRequest = {
-                showDialog.value = false to null
-            },
-            content = {
-                connectedDialog()
-            }
-        )
-        Dialog(
-            title = "Loading..",
-            state = DialogState(size = DpSize(Dp.Unspecified, Dp.Unspecified)),
-            resizable = false,
-            visible = showLoader.value,
-            onCloseRequest = {},
-            content = {
-                CircularProgressIndicator(
-                    modifier = Modifier.padding(5.dp)
-                )
-            }
-        )
+
+        loader()
+        deviceDialog()
+        nmap()
         //subnetScan()
         devicesList = initList()
     }
 }
+
+private const val NMAP_PATH_WINDOWS = "C:/Program Files (x86)/Nmap"
+private const val NMAP_PATH_UNIX = "/usr/bin/nmap"
+@Composable
+fun nmap() {
+    isMac()
+    is64Bit()
+
+    val nmap4j = Nmap4j(if (true) NMAP_PATH_WINDOWS else NMAP_PATH_UNIX)
+    nmap4j.includeHosts("192.168.0.34")
+    nmap4j.addFlags("-sn")
+    nmap4j.execute()
+    println("nmap4j.output ${nmap4j.output}")
+}
+
 @Composable
 private fun discoveryControls() {
     Row {
@@ -357,26 +357,4 @@ fun giveAHug(
             println(sip)
         }
     }
-}
-
-
-fun ByteArray.toMac(): String {
-    val sb = StringBuilder()
-    for (i in 0 until this.size) {
-        sb.append(java.lang.String.format("%02X%s", this.get(i), if (i < this.size - 1) "-" else ""))
-    }
-    return sb.toString()
-}
-
-fun ping(host: String?): Duration? {
-    val startTime: Instant = Instant.now()
-    try {
-        val address = InetAddress.getByName(host)
-        if (address.isReachable(1000)) {
-            return Duration.between(startTime, Instant.now())
-        }
-    } catch (e: IOException) {
-        // Host not available, nothing to do here
-    }
-    return Duration.ofDays(1)
 }
